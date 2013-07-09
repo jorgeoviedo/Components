@@ -1,15 +1,9 @@
-//##########################################################################################################
-//#  Variables  Order Manager                                                                              #
-//##########################################################################################################
 static long   MAGIC     = 123456;
 static ulong  DEVIATION = 15;
 static double PIP_LOSS  = 70; //Pips / 10 in EUR USD
 static double PIP_TAKE  = 70; //Pips / 10 in EUS USD
 static double VOLUME    = 0.2;
 
-//##########################################################################################################
-//#  Order Open / Modify / Stop Loss and Take Profit / Delete / Execute                                    #
-//##########################################################################################################
 void stepForOpenOrder(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult &res)
 {    setOrderOpen(type, req, res);
      setOrderPriceSLTP(req);
@@ -32,7 +26,6 @@ void setOrderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult  &r
      req.action     = TRADE_ACTION_DEAL;
      req.comment    = "OPEN ";
      req.deviation  = DEVIATION;
-     req.expiration = TimeTradeServer() + 15*60;
 }  
 
 void setOrderDelete(MqlTradeRequest &req)
@@ -70,6 +63,3 @@ void executeOrder(MqlTradeRequest &req, MqlTradeResult  &res)
      {  Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
      }
 }
-//##########################################################################################################
-//#  End Order Open / Modify / Stop Loss and Take Profit / Delete / Execute                                #
-//##########################################################################################################

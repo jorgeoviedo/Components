@@ -1,21 +1,14 @@
-//##########################################################################################################
-//#  Variables Graph Order                                                                                 #
-//##########################################################################################################
-       int objIndName = 0;
-static int CORRECTOR  = 4;       
+int objIndName = 0;
 
-//##########################################################################################################
-//#  Graph Order                                                                                           #
-//##########################################################################################################
 void paintOrder(MqlTradeRequest &req)
 {    if(req.comment == "OPEN ")
      {  paintOrderGraphicType(OBJ_TREND, req);
         paintOrderGraphicType(OBJ_ARROW_LEFT_PRICE, req);
      } 
      if(req.comment == "CLOSE ORDER ")
-     {  objIndName = objIndName - CORRECTOR;
+     {  objIndName = objIndName - 4;
         paintOrderGraphicType(OBJ_TREND, req);
-        objIndName = objIndName + CORRECTOR;
+        objIndName = objIndName + 4;
         paintOrderGraphicType(OBJ_ARROW_RIGHT_PRICE, req);
         
      }
@@ -44,6 +37,3 @@ void paintOrderGraphicText(MqlTradeRequest &req)
      ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_ANCHOR, ANCHOR_RIGHT_LOWER);
      ObjectSetDouble (0, IntegerToString(objIndName), OBJPROP_ANGLE, 90);
 }
-//##########################################################################################################
-//#  End Graph Order                                                                                       #
-//##########################################################################################################

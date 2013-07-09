@@ -1,64 +1,34 @@
-//##########################################################################################################
-//# Variable ZigZag Indicator                                                                              #
-//##########################################################################################################
-       double HighBuffer[];
-       double LowBuffer[];
-       double ColorBuffer[];
-       int    handleInd;
-#define ERROR_ZZ(error)    Print("Error: ", __FUNCTION__, __LINE__, error)
+int    handleInd;
+double High[], Low[], Color[];
 
-//##########################################################################################################
-//# ZigZag Indicator                                                                                       #
-//##########################################################################################################
-void instanceZizZagIndicator()
+void instanceZZ()
 {    ResetLastError();
      handleInd = iCustom(_Symbol, _Period, "Examples\\ZigzagColor");
-     if(handleInd==INVALID_HANDLE)
-     {  ERROR_ZZ(GetLastError());
-     }
+     if(handleInd==INVALID_HANDLE)  
+        Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
 }
 
-void readZigZagIndicator()
+void readZZ()
 {    ResetLastError();
-     if(CopyBuffer(handleInd, 2, 0, 5, ColorBuffer) == WRONG_VALUE) ERROR_ZZ(GetLastError());
-     if(CopyBuffer(handleInd, 3, 0, 5, HighBuffer ) == WRONG_VALUE) ERROR_ZZ(GetLastError());
-     if(CopyBuffer(handleInd, 4, 0, 5, LowBuffer  ) == WRONG_VALUE) ERROR_ZZ(GetLastError());
+     if(CopyBuffer(handleInd, 2, 0, 5, Color) == WRONG_VALUE) Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
+     if(CopyBuffer(handleInd, 3, 0, 5, High ) == WRONG_VALUE) Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
+     if(CopyBuffer(handleInd, 4, 0, 5, Low  ) == WRONG_VALUE) Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
 }
 
-bool evalZigZagIndicator(double &checkData[])
-{    if(checkData[ArraySize(checkData)-1] == 0)
-     {   return false;
-     }
+bool evalZZ(double &checkData[])
+{    if(checkData[ArraySize(checkData)-1] == 0) return false;
      for(int index=0;index<ArraySize(checkData)-1;index++)
-     {   if(checkData[index]>0)
-         { return false;
-         }
-     }
-     return true;
+     {   if(checkData[index]>0) return false;
+     }   return true;
 }
 
-bool evalZigZagColor(double &checkColor[])
-{    for(int index=0;index<ArraySize(checkColor);index++)
-     {   if(checkColor[index]>0)
-         { return false;
-         }
-     }
-     return true;
-}
-
-void printZigZagIndicator()
-{    Print("Color Buffer: ", writeZigZagIndicator(ColorBuffer) + "-" + 
-           "High Buffer: " , writeZigZagIndicator(HighBuffer ) + "-" + 
-           "Low Buffer: "  , writeZigZagIndicator(LowBuffer  ));
-}
-
-string writeZigZagIndicator(double &checkData[])
+string writeZZ(double &checkData[])
 {    string values = "";
      for(int index=0;index<=ArraySize(checkData)-1;index++)
      {   values = values + DoubleToString(checkData[index],3) + " " ;
-     }
-     return StringSubstr(values,0,StringLen(values)-1);
+     }   return StringSubstr(values,0,StringLen(values)-1);
 }
-//##########################################################################################################
-//# End ZigZag Indicator                                                                                   #
-//##########################################################################################################
+
+void printZZ()
+{    Print("Color: ", writeZZ(Color) + "-High: " , writeZZ(High) + "-Low: "  , writeZZ(Low));
+}

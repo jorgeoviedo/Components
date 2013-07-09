@@ -1,26 +1,19 @@
-//##########################################################################################################
-//#  Variables Log                                                                                         #
-//##########################################################################################################
-       int    handleFile;
-static string FILE_NAME  = "log.txt";
+int handleFile;
 
-//##########################################################################################################
-//#  Log                                                                                                   #
-//##########################################################################################################
-void instanceOrderLog()
+void instanceLog()
 {    if(handleFile == 0)
-     {  if(FileIsExist(FILE_NAME))
-        {  FileDelete(FILE_NAME);
+     {  if(FileIsExist("log.txt"))
+        {  FileDelete("log.txt");
         }   
         ResetLastError();
-        handleFile = FileOpen(FILE_NAME, FILE_WRITE|FILE_TXT);
+        handleFile = FileOpen("log.txt", FILE_WRITE|FILE_TXT);
         if(handleFile == INVALID_HANDLE)
         {  Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
         }
      }   
 }
 
-void writeLogOrder(MqlTradeRequest &req, MqlTradeResult &res)
+void writeLog(MqlTradeRequest &req, MqlTradeResult &res)
 {    FileWrite(handleFile, 
      "===================================================="+"\r\n"
      "              ", req.comment                         +"\r\n"
@@ -43,6 +36,3 @@ void writeLogOrder(MqlTradeRequest &req, MqlTradeResult &res)
      "Bid:          ", StringFormat("%G",res.bid)          +"\r\n"
      "GetLastError: ", _LastError                           );
 }
-//##########################################################################################################
-//#  End Log                                                                                               #
-//##########################################################################################################
