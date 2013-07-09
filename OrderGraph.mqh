@@ -37,3 +37,8 @@ void paintOrderGraphicText(MqlTradeRequest &req)
      ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_ANCHOR, ANCHOR_RIGHT_LOWER);
      ObjectSetDouble (0, IntegerToString(objIndName), OBJPROP_ANGLE, 90);
 }
+
+string getInfoOnTick()
+{    return StringFormat("ASK=%.6f  \nBID=%.6f  \nSPREAD=%G", SymbolInfoDouble( Symbol(),SYMBOL_ASK), 
+            SymbolInfoDouble( Symbol(),SYMBOL_BID), SymbolInfoInteger(Symbol(),SYMBOL_SPREAD));
+}

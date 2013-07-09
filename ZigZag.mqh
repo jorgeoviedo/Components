@@ -30,5 +30,5 @@ string writeZZ(double &checkData[])
 }
 
 void printZZ()
-{    Print("Color: ", writeZZ(Color) + "-High: " , writeZZ(High) + "-Low: "  , writeZZ(Low));
+{    Print("Color: ", writeZZ(Color) + "   High: " , writeZZ(High) + "   Low: "  , writeZZ(Low));
 }
