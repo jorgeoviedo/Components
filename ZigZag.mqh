@@ -4,8 +4,7 @@ double High[], Low[], Color[];
 void instanceZZ()
 {    ResetLastError();
      handleInd = iCustom(_Symbol, _Period, "Examples\\ZigzagColor");
-     if(handleInd==INVALID_HANDLE)  
-        Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
+     if(handleInd==INVALID_HANDLE) Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
 }
 
 void readZZ()
@@ -26,9 +25,9 @@ string writeZZ(double &checkData[])
 {    string values = "";
      for(int index=0;index<=ArraySize(checkData)-1;index++)
      {   values = values + DoubleToString(checkData[index],3) + " " ;
-     }   return StringSubstr(values,0,StringLen(values)-1);
+     }   return values;
 }
 
 void printZZ()
-{    Print("Color: ", writeZZ(Color) + "   High: " , writeZZ(High) + "   Low: "  , writeZZ(Low));
+{    printf("Color: %s  High: %s  Low: %s", writeZZ(Color), writeZZ(High), writeZZ(Low));
 }

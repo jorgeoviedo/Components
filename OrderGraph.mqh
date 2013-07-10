@@ -5,7 +5,7 @@ void paintOrder(MqlTradeRequest &req)
      {  paintOrderGraphicType(OBJ_TREND, req);
         paintOrderGraphicType(OBJ_ARROW_LEFT_PRICE, req);
      } 
-     if(req.comment == "CLOSE ORDER ")
+     if(req.comment == "CLOSE ")
      {  objIndName = objIndName - 4;
         paintOrderGraphicType(OBJ_TREND, req);
         objIndName = objIndName + 4;
@@ -36,9 +36,4 @@ void paintOrderGraphicText(MqlTradeRequest &req)
      ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_FONTSIZE, 8);
      ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_ANCHOR, ANCHOR_RIGHT_LOWER);
      ObjectSetDouble (0, IntegerToString(objIndName), OBJPROP_ANGLE, 90);
-}
-
-string getInfoOnTick()
-{    return StringFormat("ASK=%.6f  \nBID=%.6f  \nSPREAD=%G", SymbolInfoDouble( Symbol(),SYMBOL_ASK), 
-            SymbolInfoDouble( Symbol(),SYMBOL_BID), SymbolInfoInteger(Symbol(),SYMBOL_SPREAD));
 }
