@@ -7,6 +7,17 @@ static double PIP_LOSS  = 100; //Pips / 10 in EUR USD
 static double VOLUME    = 0.2;
 static double DELTA     = 50;
 
+void orderCheckForOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult  &res)
+{    if(PositionsTotal()==0)
+     {  orderOpen(type, req, res);
+     }
+     else
+     {  if(!(req.type == type))
+        {  orderDelete(req, res);
+        }
+     }
+}
+
 void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult  &res)
 {    ZeroMemory(req);
      ZeroMemory(res);
@@ -37,19 +48,20 @@ void orderDelete(MqlTradeRequest &req, MqlTradeResult  &res)
 {    req.type    = (req.type == ORDER_TYPE_SELL)? ORDER_TYPE_BUY: ORDER_TYPE_SELL;
      req.action  = TRADE_ACTION_DEAL;
      req.comment = "CLOSE ";
+     req.sl=0;
+     req.tp=0;
      orderExecute(req, res);
      orderWriteLog(req, res);
      orderPaitnt(req);        
 }  
 
 void orderModifySLTP(MqlTradeRequest &req, MqlTradeResult  &res)
-{    switch(req.type)
+{    req.tp = 0;
+     switch(req.type)
      {   case ORDER_TYPE_BUY:  
-              req.tp = 0;
               req.sl = SymbolInfoDouble(_Symbol, SYMBOL_ASK) - (_Point * (PIP_LOSS + DELTA));
               break;
          case ORDER_TYPE_SELL: 
-              req.tp = 0;
               req.sl = SymbolInfoDouble(_Symbol, SYMBOL_BID) + (_Point * (PIP_LOSS + DELTA));
               break;
      }
@@ -75,7 +87,9 @@ void orderCheckModSLTP(MqlTradeRequest &req, MqlTradeResult &res)
         (AccountInfoDouble(ACCOUNT_PROFIT) > 0) &&
         (AccountInfoDouble(ACCOUNT_PROFIT) > lastAccProfit))
      {  orderModifySLTP(req, res);
-        lastAccProfit = AccountInfoDouble(ACCOUNT_PROFIT);
+        if(GetLastError()==0)
+        {  lastAccProfit = AccountInfoDouble(ACCOUNT_PROFIT);
+        }
      }
 }
 
