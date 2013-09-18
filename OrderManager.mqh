@@ -4,12 +4,14 @@ double lastAccProfit = 0;
 static double VOLUME = 0.2;
 static long MAGIC = 123456;
 static ulong DEVIATION = 15;
-static double PIP_LOSS = 100;
+static double PIP_LOSS = 15;
 static int OBJECT_POSITION = 4;
+#define SY_ASK SymbolInfoDouble(_Symbol, SYMBOL_ASK)
+#define SY_BID SymbolInfoDouble(_Symbol, SYMBOL_BID)
 #define SL_ASK SymbolInfoDouble(_Symbol, SYMBOL_ASK) - (_Point * PIP_LOSS)
 #define SL_BID SymbolInfoDouble(_Symbol, SYMBOL_BID) + (_Point * PIP_LOSS)
 
-void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult  &res) {
+void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult &res) {
      ZeroMemory(req);
      ZeroMemory(res);
      req.type = type;
@@ -20,27 +22,22 @@ void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult  &res)
      req.comment = "OPEN ";
      req.deviation = DEVIATION;
      req.action = TRADE_ACTION_DEAL;
-     req.price = (req.type == ORDER_TYPE_BUY)? SymbolInfoDouble(_Symbol, SYMBOL_ASK): 
-                                               SymbolInfoDouble(_Symbol, SYMBOL_BID);
+     req.price = (req.type == ORDER_TYPE_BUY)? SY_ASK: SY_BID;
      req.sl = (req.type == ORDER_TYPE_BUY)? SL_ASK: SL_BID;
      orderExecute(req, res);
-     orderWriteLog(req, res);
-     orderPaint(req);
 }
 
-void orderDelete(MqlTradeRequest &req, MqlTradeResult  &res) {
+void orderDelete(MqlTradeRequest &req, MqlTradeResult &res) {
      req.sl=0;
      req.tp=0;
      req.comment = "CLOSE ";
      req.action = TRADE_ACTION_DEAL;
-     req.price = SymbolInfoDouble(_Symbol,SYMBOL_LAST);
+     req.price = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
      req.type = (req.type == ORDER_TYPE_SELL)? ORDER_TYPE_BUY: ORDER_TYPE_SELL;
      orderExecute(req, res);
-     orderWriteLog(req, res);
-     orderPaint(req);
 }
 
-void orderModifySLTP(MqlTradeRequest &req, MqlTradeResult  &res) {
+void orderModifySLTP(MqlTradeRequest &req, MqlTradeResult &res) {
      req.tp = 0;
      req.comment = "Modify SL ";
      req.action = TRADE_ACTION_SLTP;
@@ -67,45 +64,34 @@ void orderExecute(MqlTradeRequest &req, MqlTradeResult &res) {
 }
 
 void orderCheckModSLTP(MqlTradeRequest &req, MqlTradeResult &res) {
-     if ((AccountInfoDouble(ACCOUNT_PROFIT) > 0) &&
-         (AccountInfoDouble(ACCOUNT_PROFIT) > lastAccProfit) && (PositionsTotal() > 0)) {
+     double accountProfit = AccountInfoDouble(ACCOUNT_PROFIT);
+     if ((accountProfit > 0) && (accountProfit > lastAccProfit) && (PositionsTotal() > 0)) {
           orderModifySLTP(req, res);
           if (GetLastError() == 0) {
-              lastAccProfit = AccountInfoDouble(ACCOUNT_PROFIT);
+              lastAccProfit = accountProfit;
           }
      }
 }
 
 void orderGetInfoOnTick() {
-     Comment(StringFormat("ASK=%.6f \nBID=%.6f \nSPREAD=%G \nPATRIMONIO=%G \nBENEFICIO=%G \nLAST PROFIT:%G",
-     SymbolInfoDouble(Symbol(),SYMBOL_ASK),
-     SymbolInfoDouble(Symbol(),SYMBOL_BID),
-     SymbolInfoInteger(Symbol(),SYMBOL_SPREAD),
-     AccountInfoDouble(ACCOUNT_EQUITY),
-     AccountInfoDouble(ACCOUNT_PROFIT),
-     lastAccProfit));
+     Comment(StringFormat("ASK=%.6f \nBID=%.6f \nLAST PROFIT=%G \nSPREAD=%G \nPATRIMONIO=%G \nBENEFICIO=%G",
+     SymbolInfoDouble(_Symbol, SYMBOL_ASK), SymbolInfoDouble(_Symbol, SYMBOL_BID), lastAccProfit,
+     SymbolInfoInteger(_Symbol, SYMBOL_SPREAD), AccountInfoDouble(ACCOUNT_EQUITY), AccountInfoDouble(ACCOUNT_PROFIT)));
 }
 
-int  orderGetEventTimer(ENUM_TIMEFRAMES period) {
+int orderGetEventTimer(ENUM_TIMEFRAMES period) {
      switch(period) {
-        case PERIOD_M1:  return(   01*60);
-        case PERIOD_M2:  return(   02*60);
-        case PERIOD_M3:  return(   03*60);
-        case PERIOD_M4:  return(   04*60);
-        case PERIOD_M5:  return(   05*60);
-        case PERIOD_M6:  return(   06*60);
-        case PERIOD_M10: return(   10*60);
-        case PERIOD_M12: return(   12*60);
-        case PERIOD_M15: return(   15*60);
-        case PERIOD_M20: return(   20*60);
-        case PERIOD_M30: return(   30*60);
-        case PERIOD_H1:  return(01*60*60);
-        case PERIOD_H2:  return(02*60*60);
-        case PERIOD_H3:  return(03*60*60);
-        case PERIOD_H4:  return(04*60*60);
-        case PERIOD_H6:  return(06*60*60);
-        case PERIOD_H8:  return(08*60*60);
-        case PERIOD_H12: return(12*60*60);
+        case PERIOD_M1:  return(01*60);
+        case PERIOD_M2:  return(02*60);
+        case PERIOD_M3:  return(03*60);
+        case PERIOD_M4:  return(04*60);
+        case PERIOD_M5:  return(05*60);
+        case PERIOD_M6:  return(06*60);
+        case PERIOD_M10: return(10*60);
+        case PERIOD_M12: return(12*60);
+        case PERIOD_M15: return(15*60);
+        case PERIOD_M20: return(20*60);
+        case PERIOD_M30: return(30*60);
      }
      return(0);
 }
@@ -129,21 +115,21 @@ void orderWriteLog(MqlTradeRequest &req, MqlTradeResult &res) {
      "              ", req.comment                         +"\r\n"
      "===================================================="+"\r\n"
      "TimeCurrent:  ", TimeToString(TimeCurrent())         +"\r\n"
-     "Symbol:       ",                   req.symbol        +"\r\n"
-     "Magic Number: ", StringFormat("%d",req.magic)        +"\r\n"
-     "Type:         ",      EnumToString(req.type)         +"\r\n"
-     "Expiration:   ",      TimeToString(req.expiration)   +"\r\n"
-     "Price:        ", StringFormat("%G",req.price)        +"\r\n"
-     "Deviation:    ", StringFormat("%G",req.deviation)    +"\r\n"
-     "Stop Loss:    ", StringFormat("%G",req.sl)           +"\r\n"
-     "Take Profit:  ", StringFormat("%G",req.tp)           +"\r\n"
-     "Stop Limit:   ", StringFormat("%G",req.stoplimit)    +"\r\n"
-     "Volume:       ", StringFormat("%G",req.volume)       +"\r\n"
-     "Request ID:   ", StringFormat("%d",res.request_id)   +"\r\n"
-     "Order ticket: ",           (string)res.order         +"\r\n"
-     "Deal ticket:  ",           (string)res.deal          +"\r\n"
-     "Ask:          ", StringFormat("%G",res.ask)          +"\r\n"
-     "Bid:          ", StringFormat("%G",res.bid)          +"\r\n"
+     "Symbol:       ",                    req.symbol       +"\r\n"
+     "Magic Number: ", StringFormat("%d", req.magic)       +"\r\n"
+     "Type:         ",      EnumToString( req.type)        +"\r\n"
+     "Expiration:   ",      TimeToString( req.expiration)  +"\r\n"
+     "Price:        ", StringFormat("%G", req.price)       +"\r\n"
+     "Deviation:    ", StringFormat("%G", req.deviation)   +"\r\n"
+     "Stop Loss:    ", StringFormat("%G", req.sl)          +"\r\n"
+     "Take Profit:  ", StringFormat("%G", req.tp)          +"\r\n"
+     "Stop Limit:   ", StringFormat("%G", req.stoplimit)   +"\r\n"
+     "Volume:       ", StringFormat("%G", req.volume)      +"\r\n"
+     "Request ID:   ", StringFormat("%d", res.request_id)  +"\r\n"
+     "Order ticket: ",            (string)res.order        +"\r\n"
+     "Deal ticket:  ",            (string)res.deal         +"\r\n"
+     "Ask:          ", StringFormat("%G", res.ask)         +"\r\n"
+     "Bid:          ", StringFormat("%G", res.bid)         +"\r\n"
      "GetLastError: ", _LastError                           );
 }
 
@@ -164,20 +150,20 @@ void orderPaint(MqlTradeRequest &req) {
 }
 
 void orderPaintType(ENUM_OBJECT type, MqlTradeRequest &req) {
-     objIndName++;
-     ObjectCreate    (0, IntegerToString(objIndName), type, 0, TimeCurrent(), req.price);
-     ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_COLOR, clrYellow);
-     ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_STYLE, STYLE_SOLID);
-     ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_WIDTH, 1);
+     string objName = IntegerToString(objIndName++);
+     ObjectCreate(0, objName, type, 0, TimeCurrent(), req.price);
+     ObjectSetInteger(0, objName, OBJPROP_COLOR, clrYellow);
+     ObjectSetInteger(0, objName, OBJPROP_STYLE, STYLE_SOLID);
+     ObjectSetInteger(0, objName, OBJPROP_WIDTH, 1);
 }
 
 void orderPaintText(MqlTradeRequest &req) {
-     objIndName++;
-     ObjectCreate    (0, IntegerToString(objIndName), OBJ_TEXT, 0, TimeCurrent(), req.price);
-     ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_COLOR, clrYellow);
-     ObjectSetString (0, IntegerToString(objIndName), OBJPROP_TEXT, req.comment + EnumToString(req.type));
-     ObjectSetString (0, IntegerToString(objIndName), OBJPROP_FONT, "Arial");
-     ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_FONTSIZE, 6);
-     ObjectSetInteger(0, IntegerToString(objIndName), OBJPROP_ANCHOR, ANCHOR_LOWER);
-     ObjectSetDouble (0, IntegerToString(objIndName), OBJPROP_ANGLE, 90);
+     string objName = IntegerToString(objIndName++);
+     ObjectCreate(0, objName, OBJ_TEXT, 0, TimeCurrent(), req.price);
+     ObjectSetInteger(0, objName, OBJPROP_COLOR, clrYellow);
+     ObjectSetString (0, objName, OBJPROP_TEXT, req.comment + EnumToString(req.type));
+     ObjectSetString (0, objName, OBJPROP_FONT, "Arial");
+     ObjectSetInteger(0, objName, OBJPROP_FONTSIZE, 6);
+     ObjectSetInteger(0, objName, OBJPROP_ANCHOR, ANCHOR_LOWER);
+     ObjectSetDouble (0, objName, OBJPROP_ANGLE, 90);
 }
