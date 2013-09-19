@@ -8,8 +8,8 @@ static double PIP_LOSS = 15;
 static int OBJECT_POSITION = 4;
 #define SY_ASK SymbolInfoDouble(_Symbol, SYMBOL_ASK)
 #define SY_BID SymbolInfoDouble(_Symbol, SYMBOL_BID)
-#define SL_ASK SymbolInfoDouble(_Symbol, SYMBOL_ASK) - (_Point * PIP_LOSS)
-#define SL_BID SymbolInfoDouble(_Symbol, SYMBOL_BID) + (_Point * PIP_LOSS)
+#define SL_ASK SY_ASK - (_Point * PIP_LOSS)
+#define SL_BID SY_BID + (_Point * PIP_LOSS)
 
 void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult &res) {
      ZeroMemory(req);

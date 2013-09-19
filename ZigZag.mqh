@@ -1,5 +1,5 @@
 int handleInd;
-double High[], Low[], Color[];
+double High[], Low[];
 
 void ZZinstance() {
      ResetLastError();
@@ -11,13 +11,8 @@ void ZZinstance() {
 
 void ZZread() {
      ResetLastError();
-     if (CopyBuffer(handleInd, 2, 0, 6, Color) == WRONG_VALUE) {
-         Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
-     }
-     if (CopyBuffer(handleInd, 3, 0, 6, High ) == WRONG_VALUE) {
-         Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
-     }
-     if (CopyBuffer(handleInd, 4, 0, 6, Low  ) == WRONG_VALUE) {
+     if ((CopyBuffer(handleInd, 3, 0, 6, High ) == WRONG_VALUE) || 
+         (CopyBuffer(handleInd, 4, 0, 6, Low  ) == WRONG_VALUE)) {
          Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
      }
 }
@@ -43,5 +38,5 @@ string ZZwrite(double &checkData[]) {
 }
 
 void ZZprint() {
-     printf("Color: %s  High: %s  Low: %s", ZZwrite(Color), ZZwrite(High), ZZwrite(Low));
+     printf("High: %s  Low: %s", ZZwrite(High), ZZwrite(Low));
 }
