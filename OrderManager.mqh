@@ -7,7 +7,7 @@ static int OBJECT_POSITION = 4;
 input static double VOLUME = 0.2;
 input static long MAGIC = 123456;
 input static ulong DEVIATION = 15;
-input static double PIP_LOSS = 15;
+input static double PIP_LOSS = 50;
 
 void orderOpen(ENUM_ORDER_TYPE type) {
      ZeroMemory(request);

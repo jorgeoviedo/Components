@@ -11,28 +11,38 @@ void zzInstance() {
 
 void zzRead() {
      ResetLastError();
-     if ((CopyBuffer(handleInd, 3, 0, 6, High ) == WRONG_VALUE) || 
-         (CopyBuffer(handleInd, 4, 0, 6, Low  ) == WRONG_VALUE)) {
+     if ((CopyBuffer(handleInd, 3, 0, 6, High) == WRONG_VALUE) || 
+         (CopyBuffer(handleInd, 4, 0, 6, Low) == WRONG_VALUE)) {
          Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
      }
 }
 
-bool zzEval(double &checkData[]) {
-     if (checkData[ArraySize(checkData)-1] == 0) {
+bool zzEval(double &vector[]) {
+     if (vector[ArraySize(vector)-1] == 0) {
          return false;
      }
-     for (int index=0; index<ArraySize(checkData)-1; index++) {
-          if (checkData[index] > 0) {
+     for (int index=0; index<ArraySize(vector)-1; index++) {
+          if (vector[index] > 0) {
               return false;
           }
      }
      return true;
 }
 
-string zzWrite(double &checkData[]) {
+ENUM_ORDER_TYPE zzEvalToOpenPosition() {
+     zzRead();
+     if (zzEval(High)) {
+         return ORDER_TYPE_SELL;
+     } else if (zzEval(Low)) {
+         return ORDER_TYPE_BUY;
+     }   
+     return NULL;
+}
+
+string zzWrite(double &vector[]) {
      string values = "";
-     for (int index=0; index<=ArraySize(checkData)-1; index++) {
-          values = values + DoubleToString(checkData[index], 2) + " ";
+     for (int index=0; index<=ArraySize(vector)-1; index++) {
+          values = values + DoubleToString(vector[index], 2) + " ";
      }
      return values;
 }
