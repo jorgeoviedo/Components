@@ -15,19 +15,19 @@ class ZigZag
          double            Low[];
          double            High[];
          int               handleInd;
-         void              zzRead(void);
-         bool              zzEval(double &vector[]);
-         string            zzWrite(double &vector[]);
+         void              read(void);
+         bool              eval(double &vector[]);
+         string            write(double &vector[]);
       
       public:
-         void              zzPrint();
-         void              zzInstance(void);
-         ENUM_ORDER_TYPE   zzEvalToOpenPosition();
+         void              print();
+         void              instance(void);
+         ENUM_ORDER_TYPE   evalToOpenPosition();
 };
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void ZigZag::zzInstance() {
+void ZigZag::instance() {
      ResetLastError();
      handleInd = iCustom(_Symbol, _Period, "Examples\\ZigzagColor");
      if (handleInd == INVALID_HANDLE) {
@@ -37,7 +37,7 @@ void ZigZag::zzInstance() {
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void ZigZag::zzRead() {
+void ZigZag::read() {
      ResetLastError();
      if ((CopyBuffer(handleInd, 3, 0, 6, High) == WRONG_VALUE) || 
          (CopyBuffer(handleInd, 4, 0, 6, Low) == WRONG_VALUE)) {
@@ -47,7 +47,7 @@ void ZigZag::zzRead() {
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-bool ZigZag::zzEval(double &vector[]) {
+bool ZigZag::eval(double &vector[]) {
      if (vector[ArraySize(vector)-1] == 0) {
          return false;
      }
@@ -61,11 +61,11 @@ bool ZigZag::zzEval(double &vector[]) {
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-ENUM_ORDER_TYPE ZigZag::zzEvalToOpenPosition() {
-     zzRead();
-     if (zzEval(High)) {
+ENUM_ORDER_TYPE ZigZag::evalToOpenPosition() {
+     read();
+     if (eval(High)) {
          return ORDER_TYPE_SELL;
-     } else if (zzEval(Low)) {
+     } else if (eval(Low)) {
          return ORDER_TYPE_BUY;
      }   
      return NULL;
@@ -73,7 +73,7 @@ ENUM_ORDER_TYPE ZigZag::zzEvalToOpenPosition() {
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-string ZigZag::zzWrite(double &vector[]) {
+string ZigZag::write(double &vector[]) {
      string values = "";
      for (int index=0; index<=ArraySize(vector)-1; index++) {
           values = values + DoubleToString(vector[index], 2) + " ";
@@ -83,8 +83,8 @@ string ZigZag::zzWrite(double &vector[]) {
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void ZigZag::zzPrint() {
-     printf("High: %s  Low: %s", zzWrite(High), zzWrite(Low));
+void ZigZag::print() {
+     printf("High: %s  Low: %s", write(High), write(Low));
 }
 //+------------------------------------------------------------------+
 //|                                                                  |
