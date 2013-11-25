@@ -6,12 +6,10 @@ static long MAGIC = 123456;
 static ulong DEVIATION = 15;
 static double PIP_LOSS = 15;
 static int OBJECT_POSITION = 4;
-#define SY_ASK SymbolInfoDouble(_Symbol, SYMBOL_ASK)
-#define SY_BID SymbolInfoDouble(_Symbol, SYMBOL_BID)
-#define SL_ASK SY_ASK - (_Point * PIP_LOSS)
-#define SL_BID SY_BID + (_Point * PIP_LOSS)
+MqlTradeRequest req;
+MqlTradeResult res;
 
-void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult &res) {
+void orderOpen(ENUM_ORDER_TYPE type) {
      ZeroMemory(req);
      ZeroMemory(res);
      req.type = type;
@@ -22,51 +20,57 @@ void orderOpen(ENUM_ORDER_TYPE type, MqlTradeRequest &req, MqlTradeResult &res) 
      req.comment = "OPEN ";
      req.deviation = DEVIATION;
      req.action = TRADE_ACTION_DEAL;
-     req.price = (req.type == ORDER_TYPE_BUY)? SY_ASK: SY_BID;
-     req.sl = (req.type == ORDER_TYPE_BUY)? SL_ASK: SL_BID;
-     orderExecute(req, res);
+     if (req.type == ORDER_TYPE_BUY) {
+         req.price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+         req.sl = req.price - (_Point * PIP_LOSS);
+     } else {
+         req.price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+         req.sl = req.price + (_Point * PIP_LOSS);
+     }
+     orderExecute();
 }
 
-void orderDelete(MqlTradeRequest &req, MqlTradeResult &res) {
+void orderDelete() {
      req.sl=0;
      req.tp=0;
      req.comment = "CLOSE ";
      req.action = TRADE_ACTION_DEAL;
      req.price = SymbolInfoDouble(_Symbol, SYMBOL_LAST);
      req.type = (req.type == ORDER_TYPE_SELL)? ORDER_TYPE_BUY: ORDER_TYPE_SELL;
-     orderExecute(req, res);
+     orderExecute();
 }
 
-void orderModifySLTP(MqlTradeRequest &req, MqlTradeResult &res) {
+void orderModifySLTP() {
      req.tp = 0;
      req.comment = "Modify SL ";
      req.action = TRADE_ACTION_SLTP;
-     req.sl = (req.type == ORDER_TYPE_BUY)? SL_ASK: SL_BID;
-     orderExecute(req, res);
+     if (req.type == ORDER_TYPE_BUY) {
+         req.sl = SymbolInfoDouble(_Symbol, SYMBOL_ASK) - (_Point * PIP_LOSS);
+     } else {
+         req.sl = SymbolInfoDouble(_Symbol, SYMBOL_BID) + (_Point * PIP_LOSS);
+     }
+     orderExecute();
 }
 
-void orderExecute(MqlTradeRequest &req, MqlTradeResult &res) {
+void orderExecute() {
      ResetLastError();
      if (OrderSend(req, res) == true) {
          if (req.action == TRADE_ACTION_SLTP) {
              PlaySound("news.wav");
-         }
-         else if (req.type == ORDER_TYPE_BUY) {
+         } else if (req.type == ORDER_TYPE_BUY) {
              PlaySound("connect.wav");
-         }
-         else if (req.type == ORDER_TYPE_SELL) {
+         } else if (req.type == ORDER_TYPE_SELL) {
              PlaySound("ok.wav");
          }
-     }
-     else {
+     } else {
          Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
      }
 }
 
-void orderCheckModSLTP(MqlTradeRequest &req, MqlTradeResult &res) {
+void orderCheckModSLTP() {
      double accountProfit = AccountInfoDouble(ACCOUNT_PROFIT);
      if ((accountProfit > 0) && (accountProfit > lastAccProfit) && (PositionsTotal() > 0)) {
-          orderModifySLTP(req, res);
+          orderModifySLTP();
           if (GetLastError() == 0) {
               lastAccProfit = accountProfit;
           }
@@ -109,7 +113,7 @@ void orderInstanceLog() {
      }
 }
 
-void orderWriteLog(MqlTradeRequest &req, MqlTradeResult &res) {
+void orderWriteLog() {
      FileWrite(handleFile, 
      "===================================================="+"\r\n"
      "              ", req.comment                         +"\r\n"
@@ -133,23 +137,23 @@ void orderWriteLog(MqlTradeRequest &req, MqlTradeResult &res) {
      "GetLastError: ", _LastError                           );
 }
 
-void orderPaint(MqlTradeRequest &req) {
+void orderPaint() {
      if (req.comment == "OPEN ") {
-         orderPaintType(OBJ_TREND, req);
-         orderPaintType(OBJ_ARROW_LEFT_PRICE, req);
+         orderPaintType(OBJ_TREND);
+         orderPaintType(OBJ_ARROW_LEFT_PRICE);
      }
      if (req.comment == "CLOSE ") {
          objIndName = objIndName - OBJECT_POSITION;
-         orderPaintType(OBJ_TREND, req);
+         orderPaintType(OBJ_TREND);
          objIndName = objIndName + OBJECT_POSITION;
-         orderPaintType(OBJ_ARROW_RIGHT_PRICE, req);
+         orderPaintType(OBJ_ARROW_RIGHT_PRICE);
      }
-     orderPaintType(OBJ_VLINE, req);
-     orderPaintText(req);
+     orderPaintType(OBJ_VLINE);
+     orderPaintText();
      ChartRedraw(0);
 }
 
-void orderPaintType(ENUM_OBJECT type, MqlTradeRequest &req) {
+void orderPaintType(ENUM_OBJECT type) {
      string objName = IntegerToString(objIndName++);
      ObjectCreate(0, objName, type, 0, TimeCurrent(), req.price);
      ObjectSetInteger(0, objName, OBJPROP_COLOR, clrYellow);
@@ -157,7 +161,7 @@ void orderPaintType(ENUM_OBJECT type, MqlTradeRequest &req) {
      ObjectSetInteger(0, objName, OBJPROP_WIDTH, 1);
 }
 
-void orderPaintText(MqlTradeRequest &req) {
+void orderPaintText() {
      string objName = IntegerToString(objIndName++);
      ObjectCreate(0, objName, OBJ_TEXT, 0, TimeCurrent(), req.price);
      ObjectSetInteger(0, objName, OBJPROP_COLOR, clrYellow);
