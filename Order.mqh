@@ -12,44 +12,51 @@
 class Order
 {
       private:
-         int handleFile;
-         int objIndName;
-         MqlTradeResult result;
-         MqlTradeRequest request;
-         double lastAccProfit;
-                                    int OBJECT_POSITION;
-                                    double VOLUME;
-                                    long MAGIC;
-                                    ulong DEVIATION;
-                                    double PIP_LOSS;
-         void orderDelete();
-         void orderExecute();
-         void orderWriteLog();
-         void orderPaintText();
-         void orderModifySLTP();
-         void orderPaintType(ENUM_OBJECT type);
-
+         int               handleFile;
+         int               objIndName;
+         MqlTradeResult    result;
+         MqlTradeRequest   request;
+         double            lastAccProfit;
+         static int        OBJECT_POSITION;
+         static double     VOLUME;
+         static long       MAGIC;
+         static ulong      DEVIATION;
+         static double     PIP_LOSS;
+         void              orderDelete();
+         void              orderExecute();
+         void              orderWriteLog();
+         void              orderPaintText();
+         void              orderModifySLTP();
+         void              orderPaintType(ENUM_OBJECT type);
+      
       public:
-         void Order(void);
-         void orderPaint();
-         int getHandleFile();
-         void orderInstanceLog();
-         void orderCheckModSLTP();
-         void orderGetInfoOnTick();
-         void orderOpen(ENUM_ORDER_TYPE type);
-         int orderGetEventTimer(ENUM_TIMEFRAMES period);
+         void              Order(void);
+         void              orderPaint();
+         int               getHandleFile();
+         void              orderInstanceLog();
+         void              orderCheckModSLTP();
+         void              orderGetInfoOnTick();
+         void              orderOpen(ENUM_ORDER_TYPE type);
+         int               orderGetEventTimer(ENUM_TIMEFRAMES period);
 };
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double   Order::VOLUME = 0.2;
+double   Order::PIP_LOSS = 20;
+ulong    Order::DEVIATION = 15;
+long     Order::MAGIC = 123456;
+int      Order::OBJECT_POSITION = 4;
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::Order(void) {
      objIndName = 0;
      lastAccProfit = 0;
-     OBJECT_POSITION = 4;
-     VOLUME = 0.2;
-     MAGIC = 123456;
-     DEVIATION = 15;
-     PIP_LOSS = 15;
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderOpen(ENUM_ORDER_TYPE type) {
      ZeroMemory(request);
      ZeroMemory(result);
@@ -70,7 +77,9 @@ void Order::orderOpen(ENUM_ORDER_TYPE type) {
      }
      orderExecute();
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderDelete() {
      request.sl=0;
      request.tp=0;
@@ -84,7 +93,9 @@ void Order::orderDelete() {
      }
      orderExecute();
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderModifySLTP() {
      request.tp = 0;
      request.comment = "Modify SL ";
@@ -96,7 +107,9 @@ void Order::orderModifySLTP() {
      }
      orderExecute();
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderExecute() {
      ResetLastError();
      if (OrderSend(request, result) == true) {
@@ -111,7 +124,9 @@ void Order::orderExecute() {
          Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
      }
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderCheckModSLTP() {
      double accountProfit = AccountInfoDouble(ACCOUNT_PROFIT);
      if ((accountProfit > 0) && (accountProfit > lastAccProfit) && (PositionsTotal() > 0)) {
@@ -121,13 +136,17 @@ void Order::orderCheckModSLTP() {
           }
      }
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderGetInfoOnTick() {
      Comment(StringFormat("ASK=%.6f \nBID=%.6f \nBEST PROFIT=%G \nSPREAD=%G \nPATRIMONIO=%G \nBENEFICIO=%G",
      SymbolInfoDouble(_Symbol, SYMBOL_ASK), SymbolInfoDouble(_Symbol, SYMBOL_BID), lastAccProfit,
      SymbolInfoInteger(_Symbol, SYMBOL_SPREAD), AccountInfoDouble(ACCOUNT_EQUITY), AccountInfoDouble(ACCOUNT_PROFIT)));
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 int Order::orderGetEventTimer(ENUM_TIMEFRAMES period) {
      switch(period) {
         case PERIOD_M1:  return(01*60);
@@ -144,7 +163,9 @@ int Order::orderGetEventTimer(ENUM_TIMEFRAMES period) {
      }
      return(0);
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderInstanceLog() {
      if (handleFile == 0) {
          if (FileIsExist("log.txt")) {
@@ -157,7 +178,9 @@ void Order::orderInstanceLog() {
          }
      }
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderWriteLog() {
      FileWrite(handleFile, 
      "========================================================"+"\r\n"
@@ -181,7 +204,9 @@ void Order::orderWriteLog() {
      "Bid:          ", StringFormat("%G", result.bid)          +"\r\n"
      "GetLastError: ", _LastError                             );
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderPaint() {
      if (request.comment == "OPEN ") {
          orderPaintType(OBJ_TREND);
@@ -197,7 +222,9 @@ void Order::orderPaint() {
      orderPaintText();
      ChartRedraw(0);
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderPaintType(ENUM_OBJECT type) {
      string objName = IntegerToString(objIndName++);
      ObjectCreate(0, objName, type, 0, TimeCurrent(), request.price);
@@ -205,7 +232,9 @@ void Order::orderPaintType(ENUM_OBJECT type) {
      ObjectSetInteger(0, objName, OBJPROP_STYLE, STYLE_SOLID);
      ObjectSetInteger(0, objName, OBJPROP_WIDTH, 1);
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 void Order::orderPaintText() {
      string objName = IntegerToString(objIndName++);
      ObjectCreate(0, objName, OBJ_TEXT, 0, TimeCurrent(), request.price);
@@ -216,7 +245,12 @@ void Order::orderPaintText() {
      ObjectSetInteger(0, objName, OBJPROP_ANCHOR, ANCHOR_LOWER);
      ObjectSetDouble (0, objName, OBJPROP_ANGLE, 90);
 }
-
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
 int Order::getHandleFile() {
     return handleFile;
 }
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
