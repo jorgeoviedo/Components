@@ -1,13 +1,13 @@
 //+------------------------------------------------------------------+
 //|                                                       Order.mqh  |
-//|                        Copyright 2013, MetaQuotes Software Corp. |
-//|                                              http://www.mql5.com |
+//|                                                                  |
+//|                                                                  |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2013, MetaQuotes Software Corp."
 #property link      "http://www.mql5.com"
 #property version   "1.00"
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| class Order                                                      |
 //+------------------------------------------------------------------+
 class Order
 {
@@ -40,7 +40,7 @@ class Order
          int               orderGetEventTimer(ENUM_TIMEFRAMES period);
 };
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| declaration                                                      |
 //+------------------------------------------------------------------+
 double   Order::VOLUME = 0.2;
 double   Order::PIP_LOSS = 20;
@@ -48,14 +48,14 @@ ulong    Order::DEVIATION = 15;
 long     Order::MAGIC = 123456;
 int      Order::OBJECT_POSITION = 4;
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| Order()                                                          |
 //+------------------------------------------------------------------+
 void Order::Order(void) {
      objIndName = 0;
      lastAccProfit = 0;
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderOpen()                                                      |
 //+------------------------------------------------------------------+
 void Order::orderOpen(ENUM_ORDER_TYPE type) {
      ZeroMemory(request);
@@ -78,7 +78,7 @@ void Order::orderOpen(ENUM_ORDER_TYPE type) {
      orderExecute();
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderDelete()                                                    |
 //+------------------------------------------------------------------+
 void Order::orderDelete() {
      request.sl=0;
@@ -94,7 +94,7 @@ void Order::orderDelete() {
      orderExecute();
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderModifySLTP()                                                |
 //+------------------------------------------------------------------+
 void Order::orderModifySLTP() {
      request.tp = 0;
@@ -108,7 +108,7 @@ void Order::orderModifySLTP() {
      orderExecute();
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderExecute()                                                   |
 //+------------------------------------------------------------------+
 void Order::orderExecute() {
      ResetLastError();
@@ -125,7 +125,7 @@ void Order::orderExecute() {
      }
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderCheckModSLTP()                                              |
 //+------------------------------------------------------------------+
 void Order::orderCheckModSLTP() {
      double accountProfit = AccountInfoDouble(ACCOUNT_PROFIT);
@@ -137,7 +137,7 @@ void Order::orderCheckModSLTP() {
      }
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderGetInfoOnTick()                                             |
 //+------------------------------------------------------------------+
 void Order::orderGetInfoOnTick() {
      Comment(StringFormat("ASK=%.6f \nBID=%.6f \nBEST PROFIT=%G \nSPREAD=%G \nPATRIMONIO=%G \nBENEFICIO=%G",
@@ -145,7 +145,7 @@ void Order::orderGetInfoOnTick() {
      SymbolInfoInteger(_Symbol, SYMBOL_SPREAD), AccountInfoDouble(ACCOUNT_EQUITY), AccountInfoDouble(ACCOUNT_PROFIT)));
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderGetEventTimer()                                             |
 //+------------------------------------------------------------------+
 int Order::orderGetEventTimer(ENUM_TIMEFRAMES period) {
      switch(period) {
@@ -164,7 +164,7 @@ int Order::orderGetEventTimer(ENUM_TIMEFRAMES period) {
      return(0);
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderInstanceLog()                                               |
 //+------------------------------------------------------------------+
 void Order::orderInstanceLog() {
      if (handleFile == 0) {
@@ -179,7 +179,7 @@ void Order::orderInstanceLog() {
      }
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderWriteLog()                                                  |
 //+------------------------------------------------------------------+
 void Order::orderWriteLog() {
      FileWrite(handleFile, 
@@ -205,7 +205,7 @@ void Order::orderWriteLog() {
      "GetLastError: ", _LastError                             );
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderPaint()                                                     |
 //+------------------------------------------------------------------+
 void Order::orderPaint() {
      if (request.comment == "OPEN ") {
@@ -223,7 +223,7 @@ void Order::orderPaint() {
      ChartRedraw(0);
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderPaintType()                                                 |
 //+------------------------------------------------------------------+
 void Order::orderPaintType(ENUM_OBJECT type) {
      string objName = IntegerToString(objIndName++);
@@ -233,7 +233,7 @@ void Order::orderPaintType(ENUM_OBJECT type) {
      ObjectSetInteger(0, objName, OBJPROP_WIDTH, 1);
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| orderPaintText()                                                 |
 //+------------------------------------------------------------------+
 void Order::orderPaintText() {
      string objName = IntegerToString(objIndName++);
@@ -246,11 +246,11 @@ void Order::orderPaintText() {
      ObjectSetDouble (0, objName, OBJPROP_ANGLE, 90);
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| getHandleFile()                                                  |
 //+------------------------------------------------------------------+
 int Order::getHandleFile() {
     return handleFile;
 }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//| end                                                              |
 //+------------------------------------------------------------------+
