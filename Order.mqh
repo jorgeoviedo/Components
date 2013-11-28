@@ -3,10 +3,11 @@
 //+-------------------------------------------------------------------------------------------------------------------+
 class Order
 {	private:
-		int               handleFile;
+		int               handle;
 		int               objIndName;
 		MqlTradeResult    result;
 		MqlTradeRequest   request;
+		MqlTradeTransaction transaction;
 		double            lastAccProfit;
 		static int        OBJECT_POSITION;
 		static double     VOLUME;
@@ -19,10 +20,13 @@ class Order
 		void              orderPaintText();
 		void              orderModifySLTP();
 		void              orderPaintType(ENUM_OBJECT type);
+		double            getCalculateStopLoss(ENUM_ORDER_TYPE orderType);
     public:
 		void              Order(void);
+		void              orderPaintOpen();
+		void              orderPaintClose();
 		void              orderPaint();
-		int               getHandleFile();
+		int               getHandle();
 		void              orderInstanceLog();
 		void              orderCheckModSLTP();
 		void              orderGetInfoOnTick();
@@ -60,11 +64,10 @@ void Order::orderOpen(ENUM_ORDER_TYPE type) {
 	request.action = TRADE_ACTION_DEAL;
 	if (request.type == ORDER_TYPE_BUY) {
 		request.price = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-		request.sl = request.price - (_Point * PIP_LOSS);
 	} else {
 		request.price = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-		request.sl = request.price + (_Point * PIP_LOSS);
 	}
+	request.sl = getCalculateStopLoss(request.type);
 	orderExecute();
 }
 //+-------------------------------------------------------------------------------------------------------------------+
@@ -90,18 +93,13 @@ void Order::orderModifySLTP() {
 	request.tp = 0;
 	request.comment = "Modify SL ";
 	request.action = TRADE_ACTION_SLTP;
-	if (request.type == ORDER_TYPE_BUY) {
-		request.sl = SymbolInfoDouble(_Symbol, SYMBOL_ASK) - (_Point * PIP_LOSS);
-	} else {
-		request.sl = SymbolInfoDouble(_Symbol, SYMBOL_BID) + (_Point * PIP_LOSS);
-	}
+	request.sl = getCalculateStopLoss(request.type);
 	orderExecute();
 }
 //+-------------------------------------------------------------------------------------------------------------------+
 //| orderExecute()                                                                                                    |
 //+-------------------------------------------------------------------------------------------------------------------+
 void Order::orderExecute() {
-	ResetLastError();
 	if (OrderSend(request, result) == true) {
 		if (request.action == TRADE_ACTION_SLTP) {
 			PlaySound("news.wav");
@@ -124,6 +122,16 @@ void Order::orderCheckModSLTP() {
 		if (GetLastError() == 0) {
 			lastAccProfit = accountProfit;
 		}
+	}
+}
+//+-------------------------------------------------------------------------------------------------------------------+
+//| getCalculateStopLoss()                                                                                            |
+//+-------------------------------------------------------------------------------------------------------------------+
+double Order::getCalculateStopLoss(ENUM_ORDER_TYPE orderType) {
+	if (orderType == ORDER_TYPE_BUY) {
+		return SymbolInfoDouble(_Symbol, SYMBOL_ASK) - PIP_LOSS;
+	} else { 
+		return SymbolInfoDouble(_Symbol, SYMBOL_BID) + PIP_LOSS;
 	}
 }
 //+-------------------------------------------------------------------------------------------------------------------+
@@ -157,13 +165,12 @@ int Order::orderGetEventTimer(ENUM_TIMEFRAMES period) {
 //| orderInstanceLog()                                                                                                |
 //+-------------------------------------------------------------------------------------------------------------------+
 void Order::orderInstanceLog() {
-	if (handleFile == 0) {
+	if (handle == 0) {
 		if (FileIsExist("log.txt")) {
 			FileDelete("log.txt");
 		}
-		ResetLastError();
-		handleFile = FileOpen("log.txt", FILE_WRITE|FILE_TXT);
-		if (handleFile == INVALID_HANDLE) {
+		handle = FileOpen("log.txt", FILE_WRITE|FILE_TXT);
+		if (handle == INVALID_HANDLE) {
 			Print("Error: ", __FUNCTION__, __LINE__, GetLastError());
 		}
 	}
@@ -172,7 +179,7 @@ void Order::orderInstanceLog() {
 //| orderWriteLog()                                                                                                   |
 //+-------------------------------------------------------------------------------------------------------------------+
 void Order::orderWriteLog() {
-	FileWrite(handleFile, 
+	FileWrite(handle, 
 	"======================================================="+"\r\n"
 	"              ", request.comment                        +"\r\n"
 	"======================================================="+"\r\n"
@@ -195,22 +202,31 @@ void Order::orderWriteLog() {
 	"GetLastError: ", _LastError                             );
 }
 //+-------------------------------------------------------------------------------------------------------------------+
+//| orderPaintOpen()                                                                                                      |
+//+-------------------------------------------------------------------------------------------------------------------+
+void Order::orderPaintOpen() {
+	orderPaintType(OBJ_TREND);
+}
+//+-------------------------------------------------------------------------------------------------------------------+
+//| orderPaintClose()                                                                                                      |
+//+-------------------------------------------------------------------------------------------------------------------+
+void Order::orderPaintClose() {
+	objIndName = objIndName - OBJECT_POSITION;
+	orderPaintType(OBJ_TREND);
+	objIndName = objIndName + OBJECT_POSITION;
+}
+//+-------------------------------------------------------------------------------------------------------------------+
 //| orderPaint()                                                                                                      |
 //+-------------------------------------------------------------------------------------------------------------------+
 void Order::orderPaint() {
-	if (request.comment == "OPEN ") {
-		orderPaintType(OBJ_TREND);
-		orderPaintType(OBJ_ARROW_LEFT_PRICE);
+	if (((ENUM_TRADE_REQUEST_ACTIONS)request.action == TRADE_ACTION_DEAL) && (result.retcode == TRADE_RETCODE_DONE) &&
+		((ENUM_TRADE_TRANSACTION_TYPE)transaction.type == TRADE_TRANSACTION_REQUEST)) {
+      orderPaintOpen();
+      orderPaintType(OBJ_ARROW_RIGHT_PRICE);
+      orderPaintType(OBJ_VLINE);
+      orderPaintText();
+      ChartRedraw(0);
 	}
-	if (request.comment == "CLOSE ") {
-		objIndName = objIndName - OBJECT_POSITION;
-		orderPaintType(OBJ_TREND);
-		objIndName = objIndName + OBJECT_POSITION;
-		orderPaintType(OBJ_ARROW_RIGHT_PRICE);
-	}
-	orderPaintType(OBJ_VLINE);
-	orderPaintText();
-	ChartRedraw(0);
 }
 //+-------------------------------------------------------------------------------------------------------------------+
 //| orderPaintType()                                                                                                  |
@@ -236,10 +252,10 @@ void Order::orderPaintText() {
 	ObjectSetDouble (0, objName, OBJPROP_ANGLE, 90);
 }
 //+-------------------------------------------------------------------------------------------------------------------+
-//| getHandleFile()                                                                                                   |
+//| getHandle()                                                                                                       |
 //+-------------------------------------------------------------------------------------------------------------------+
-int Order::getHandleFile() {
-	return handleFile;
+int Order::getHandle() {
+	return handle;
 }
 //+-------------------------------------------------------------------------------------------------------------------+
 //| end                                                                                                               |
